@@ -1,9 +1,13 @@
 package com.hammad.islamicdigitalstudy
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.IconButton
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.BookmarkBorder
@@ -50,6 +53,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hammad.islamicdigitalstudy.ui.theme.IslamicDigitalStudyPlatformTheme
 
+data class Book(
+    val title: String,
+    val author: String,
+    val category: String,
+    val description: String,
+    val chapters: List<String>
+)
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,6 +78,20 @@ fun AppNavigation() {
 
     var selectedItem by remember {
         androidx.compose.runtime.mutableIntStateOf(0)
+    }
+    var selectedBook by remember {
+        mutableStateOf<Book?>(null)
+    }
+    if (selectedBook != null) {
+
+        BookDetailScreen(
+            book = selectedBook!!,
+            onBack = {
+                selectedBook = null
+            }
+        )
+
+        return
     }
 
     Scaffold(
@@ -138,7 +162,12 @@ fun AppNavigation() {
 
             0 -> HomeScreen(paddingValues)
 
-            1 -> LibraryScreen(paddingValues)
+            1 -> LibraryScreen(
+            paddingValues = paddingValues,
+            onBookClick = {
+                selectedBook = it
+            }
+        )
 
             2 -> SearchScreen(paddingValues)
 
@@ -267,9 +296,11 @@ fun HomeScreen(
    LIBRARY SCREEN
    ========================= */
 
+
 @Composable
 fun LibraryScreen(
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    onBookClick: (Book) -> Unit
 ) {
 
     val categories = listOf(
@@ -282,27 +313,48 @@ fun LibraryScreen(
     )
 
     val books = listOf(
-        Triple(
-            "Riyad as-Salihin",
-            "Imam an-Nawawi",
-            "Hadith"
+        Book(
+            title = "Riyad as-Salihin",
+            author = "Imam an-Nawawi",
+            category = "Hadith",
+            description = "A famous collection of authentic Hadith compiled by Imam an-Nawawi.",
+            chapters = listOf(
+                "Introduction",
+                "Good Manners",
+                "Worship",
+                "Daily Life"
+            )
         ),
-        Triple(
-            "Tafsir Ibn Kathir",
-            "Ibn Kathir",
-            "Tafsir"
+        Book(
+            title = "The Noble Quran",
+            author = "Allah's Book",
+            category = "Quran",
+            description = "The final revelation and guidance for humanity.",
+            chapters = listOf(
+                "Al-Fatihah",
+                "Al-Baqarah",
+                "Selected Surahs"
+            )
         ),
-        Triple(
-            "Al-Hidayah",
-            "Burhan al-Din al-Marghinani",
-            "Fiqh"
+        Book(
+            title = "Tafsir Ibn Kathir",
+            author = "Ibn Kathir",
+            category = "Tafsir",
+            description = "A classical explanation of Quranic verses.",
+            chapters = listOf(
+                "Introduction",
+                "Quran Explanation",
+                "Lessons"
+            )
         ),
-        Triple(
-            "Ar-Raheeq Al-Makhtum",
-            "Safiur Rahman Mubarakpuri",
-            "Seerah"
-        )
+        Book(
+            title = "Al-Fiqh al-Akbar",
+            author = "Imam Abu Hanifa",
+            category = "Fiqh",
+            "...",
+            chapters = listOf("...", "...")
     )
+        )
 
     Column(
         modifier = Modifier
@@ -367,53 +419,222 @@ fun LibraryScreen(
         books.forEach { book ->
 
             BookCard(
-                title = book.first,
-                author = book.second,
-                category = book.third
+                title = book.title,
+                author = book.author,
+                category = book.category,
+                onClick = {
+                    onBookClick(book)
+                }
             )
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
-
-/* =========================
+    /* =========================
    SEARCH SCREEN
    ========================= */
 
-@Composable
-fun SearchScreen(
-    paddingValues: PaddingValues
-) {
-
-    var searchText by remember {
-        mutableStateOf("")
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .padding(horizontal = 20.dp)
+    @Composable
+    fun SearchScreen(
+        paddingValues: PaddingValues
     ) {
 
-        Spacer(modifier = Modifier.height(24.dp))
+        var searchText by remember {
+            mutableStateOf("")
+        }
 
-        Text(
-            text = "Search",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 20.dp)
+        ) {
 
-        Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Find books, topics and authors",
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+            Text(
+                text = "Search",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-        Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Find books, topics and authors",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(22.dp))
+
+            SearchBox(
+                value = searchText,
+                onValueChange = {
+                    searchText = it
+                }
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            if (searchText.isEmpty()) {
+
+                Text(
+                    text = "Start searching",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "Search across your Islamic study library.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+            } else {
+
+                Text(
+                    text = "Searching for \"$searchText\"",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+
+    /* =========================
+   MY LIBRARY SCREEN
+   ========================= */
+
+    @Composable
+    fun MyLibraryScreen(
+        paddingValues: PaddingValues
+    ) {
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+        ) {
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "My Library",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Your personal study space",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            LibraryStatCard(
+                title = "Continue Reading",
+                subtitle = "Pick up where you left off"
+            )
+
+            LibraryStatCard(
+                title = "Bookmarks",
+                subtitle = "Saved pages and references"
+            )
+
+            LibraryStatCard(
+                title = "Favorites",
+                subtitle = "Your favorite books and content"
+            )
+
+            LibraryStatCard(
+                title = "Reading History",
+                subtitle = "Recently opened content"
+            )
+
+            LibraryStatCard(
+                title = "Notes",
+                subtitle = "Your personal study notes"
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+
+    /* =========================
+   SEARCH BOX
+   ========================= */
+
+    @Composable
+    fun SearchBox(
+        value: String,
+        onValueChange: (String) -> Unit
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    MaterialTheme.colorScheme.surfaceVariant
+                )
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 14.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                decorationBox = { innerTextField ->
+
+                    if (value.isEmpty()) {
+
+                        Text(
+                            text = "Search books, topics, authors...",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    innerTextField()
+                }
+            )
+        }
+    }
+
+    /* =========================
+   LIBRARY SEARCH BOX
+   ========================= */
+
+    @Composable
+    fun LibrarySearchBox() {
+
+        var searchText by remember {
+            mutableStateOf("")
+        }
 
         SearchBox(
             value = searchText,
@@ -421,247 +642,265 @@ fun SearchScreen(
                 searchText = it
             }
         )
+    }
 
-        Spacer(modifier = Modifier.height(30.dp))
+    /* =========================
+   SECTION TITLE
+   ========================= */
 
-        if (searchText.isEmpty()) {
+    @Composable
+    fun SectionTitle(
+        title: String,
+        action: String?
+    ) {
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
             Text(
-                text = "Start searching",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            if (action != null) {
 
-            Text(
-                text = "Search across your Islamic study library.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                Text(
+                    text = action,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+
+    /* =========================
+   CONTINUE READING CARD
+   ========================= */
+
+    @Composable
+    fun ContinueReadingCard() {
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             )
+        ) {
 
-        } else {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                MaterialTheme.colorScheme.primary
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+
+                        Text(
+                            text = "Riyad as-Salihin",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = "Chapter: Sincerity",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Text(
+                    text = "68% completed",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(7.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(7.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(
+                            MaterialTheme.colorScheme.surface
+                        )
+                ) {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.68f)
+                            .height(7.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                MaterialTheme.colorScheme.primary
+                            )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    Text(
+                        text = "Continue Reading",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Continue"
+                    )
+                }
+            }
+        }
+    }
+
+    /* =========================
+   CATEGORY CARD
+   ========================= */
+
+    @Composable
+    fun CategoryCard(
+        title: String
+    ) {
+
+        Card(
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
 
             Text(
-                text = "Searching for \"$searchText\"",
-                fontSize = 16.sp,
+                text = title,
+                modifier = Modifier.padding(
+                    horizontal = 18.dp,
+                    vertical = 14.dp
+                ),
                 fontWeight = FontWeight.Medium
             )
         }
     }
-}
 
-/* =========================
-   MY LIBRARY SCREEN
+    /* =========================
+   BOOK CARD
    ========================= */
-
-@Composable
-fun MyLibraryScreen(
-    paddingValues: PaddingValues
-) {
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
+    @Composable
+    fun BookCard(
+        title: String,
+        author: String,
+        category: String,
+        onClick: () -> Unit
     ) {
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "My Library",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Text(
-            text = "Your personal study space",
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        LibraryStatCard(
-            title = "Continue Reading",
-            subtitle = "Pick up where you left off"
-        )
-
-        LibraryStatCard(
-            title = "Bookmarks",
-            subtitle = "Saved pages and references"
-        )
-
-        LibraryStatCard(
-            title = "Favorites",
-            subtitle = "Your favorite books and content"
-        )
-
-        LibraryStatCard(
-            title = "Reading History",
-            subtitle = "Recently opened content"
-        )
-
-        LibraryStatCard(
-            title = "Notes",
-            subtitle = "Your personal study notes"
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-/* =========================
-   SEARCH BOX
-   ========================= */
-
-@Composable
-fun SearchBox(
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+                .clickable {
+                    onClick()
+                },
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
-            .padding(
-                horizontal = 16.dp,
-                vertical = 14.dp
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+        ) {
 
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = "Search",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
 
-        Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold
+                )
 
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(
-                color = MaterialTheme.colorScheme.onSurface
-            ),
-            decorationBox = { innerTextField ->
+                Spacer(
+                    modifier = Modifier.height(6.dp)
+                )
 
-                if (value.isEmpty()) {
+                Text(
+                    text = author
+                )
 
-                    Text(
-                        text = "Search books, topics, authors...",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Spacer(
+                    modifier = Modifier.height(6.dp)
+                )
 
-                innerTextField()
+                Text(
+                    text = category,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
             }
-        )
-    }
-}
-
-/* =========================
-   LIBRARY SEARCH BOX
-   ========================= */
-
-@Composable
-fun LibrarySearchBox() {
-
-    var searchText by remember {
-        mutableStateOf("")
-    }
-
-    SearchBox(
-        value = searchText,
-        onValueChange = {
-            searchText = it
         }
-    )
-}
+    }
 
-/* =========================
-   SECTION TITLE
-   ========================= */
-
-@Composable
-fun SectionTitle(
-    title: String,
-    action: String?
-) {
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+    @Composable
+    fun RecentActivityItem(
+        title: String,
+        subtitle: String
     ) {
 
-        Text(
-            text = title,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
-        )
-
-        if (action != null) {
-
-            Text(
-                text = action,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.primary
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 10.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
-        }
-    }
-}
-
-/* =========================
-   CONTINUE READING CARD
-   ========================= */
-
-@Composable
-fun ContinueReadingCard() {
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-
-        Column(
-            modifier = Modifier.padding(20.dp)
         ) {
 
             Row(
+                modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            MaterialTheme.colorScheme.primary
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.BookmarkBorder,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
 
                 Spacer(modifier = Modifier.width(14.dp))
 
@@ -670,238 +909,21 @@ fun ContinueReadingCard() {
                 ) {
 
                     Text(
-                        text = "Riyad as-Salihin",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        text = title,
+                        fontWeight = FontWeight.SemiBold
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(3.dp))
 
                     Text(
-                        text = "Chapter: Sincerity",
+                        text = subtitle,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Text(
-                text = "68% completed",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(7.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(7.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        MaterialTheme.colorScheme.surface
-                    )
-            ) {
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.68f)
-                        .height(7.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(
-                            MaterialTheme.colorScheme.primary
-                        )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Text(
-                    text = "Continue Reading",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f)
-                )
-
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = "Continue"
-                )
-            }
         }
     }
-}
-
-/* =========================
-   CATEGORY CARD
-   ========================= */
-
-@Composable
-fun CategoryCard(
-    title: String
-) {
-
-    Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-
-        Text(
-            text = title,
-            modifier = Modifier.padding(
-                horizontal = 18.dp,
-                vertical = 14.dp
-            ),
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-/* =========================
-   BOOK CARD
-   ========================= */
-
-@Composable
-fun BookCard(
-    title: String,
-    author: String,
-    category: String
-) {
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 12.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Box(
-                modifier = Modifier
-                    .size(58.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.MenuBook,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Text(
-                    text = title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = author,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = category,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Icon(
-                imageVector = Icons.Default.BookmarkBorder,
-                contentDescription = "Bookmark",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-/* =========================
-   RECENT ACTIVITY
-   ========================= */
-
-@Composable
-fun RecentActivityItem(
-    title: String,
-    subtitle: String
-) {
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 10.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Icon(
-                imageVector = Icons.Default.BookmarkBorder,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-
-                Text(
-                    text = title,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Spacer(modifier = Modifier.height(3.dp))
-
-                Text(
-                    text = subtitle,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
 /* =========================
    MY LIBRARY CARD
    ========================= */
@@ -961,6 +983,147 @@ fun LibraryStatCard(
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+    }
+}
+@Composable
+fun BookDetailScreen(
+    book: Book,
+    onBack: () -> Unit
+) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp)
+    ) {
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+            
+            Spacer(
+                modifier = Modifier.width(16.dp)
+            )
+
+            Text(
+                text = "Book Detail",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+
+        Spacer(
+            modifier = Modifier.height(30.dp)
+        )
+
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+
+
+            Column(
+                modifier = Modifier.padding(24.dp)
+            ) {
+
+
+                Text(
+                    text = book.title,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+
+                Text(
+                    text = book.author,
+                    fontSize = 16.sp
+                )
+
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+
+                Text(
+                    text = book.category,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+
+                Spacer(
+                    modifier = Modifier.height(20.dp)
+                )
+
+
+                Text(
+                    text = book.title,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+                Text(
+                    text = "Author: ${book.author}",
+                    fontSize = 16.sp
+                )
+
+                Text(
+                    text = "Category: ${book.category}",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(
+                    modifier = Modifier.height(16.dp)
+                )
+
+                Text(
+                    text = book.description,
+                    fontSize = 15.sp
+                )
+
+                Spacer(
+                    modifier = Modifier.height(20.dp)
+                )
+
+                Text(
+                    text = "Chapters",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                book.chapters.forEach { chapter ->
+                    Text(
+                        text = "• $chapter",
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
             }
         }
     }
